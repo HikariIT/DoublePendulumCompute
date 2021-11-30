@@ -10,6 +10,7 @@ public struct Pendulum
     public Vector2 m;
     public Vector2 vel;
     public Vector2 acc;
+    public Color color;
 }
 
 public class DoublePendulumSimulation : MonoBehaviour
@@ -20,7 +21,7 @@ public class DoublePendulumSimulation : MonoBehaviour
     private RenderTexture displayTexture;
     private RenderTexture pendulumTexture;
     private RenderTexture trailTexture;
-
+    private Gradient gradient;
     const int pendulumKernel = 0;
     const int trailKernel = 1;
 
@@ -61,12 +62,35 @@ public class DoublePendulumSimulation : MonoBehaviour
         compute.SetFloat("PI", Mathf.PI);
         compute.SetFloat("G", settings.G);
 
+        compute.SetBool("drawAgents", settings.drawAgents);
+        compute.SetBool("drawTrails", settings.drawTrails);
+
         pendulums = new Pendulum[settings.objectQuantity];
+
+        InitializeGradient();
 
         for (int i = 0; i < settings.objectQuantity; i++)
         {
             CreatePendulum(i);
         }
+    }
+
+    void InitializeGradient()
+    {
+        gradient = new Gradient();
+        GradientColorKey[] colorKey = new GradientColorKey[2];
+        colorKey[0].color = settings.gradientStart;
+        colorKey[0].time = 0.0f;
+        colorKey[1].color = settings.gradientEnd;
+        colorKey[1].time = 1.0f;
+
+        GradientAlphaKey[] alphaKey = new GradientAlphaKey[2];
+        alphaKey[0].alpha = 1.0f;
+        alphaKey[0].time = 0.0f;
+        alphaKey[1].alpha = 1.0f;
+        alphaKey[1].time = 1.0f;
+
+        gradient.SetKeys(colorKey, alphaKey);
     }
 
     void CreatePendulum(int i)
@@ -79,6 +103,9 @@ public class DoublePendulumSimulation : MonoBehaviour
         pendulum.vel = new Vector2(0, 0);
         pendulum.acc = new Vector2(0, 0);
         
+        float lerp = (float)i / settings.objectQuantity;
+        pendulum.color = gradient.Evaluate(lerp);
+
         pendulums[i] = pendulum;
     }
 
@@ -112,7 +139,8 @@ public class DoublePendulumSimulation : MonoBehaviour
     }
 
     void SimulationStep()
-    {   
+    {
+        compute.SetVector("backgroundColor", settings.backgroundColor);
         compute.SetFloat("deltaTime", Time.deltaTime);
         compute.SetFloat("time", Time.time);
 
@@ -129,7 +157,6 @@ public class DoublePendulumSimulation : MonoBehaviour
         Graphics.Blit(pendulumTexture, displayTexture);
 
         pendulumBuffer.GetData(pendulums);
-        DebugVector2(pendulums[0].acc);
         pendulumBuffer.Dispose();
     }
 }

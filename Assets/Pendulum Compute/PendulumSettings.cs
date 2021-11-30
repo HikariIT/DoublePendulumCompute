@@ -13,6 +13,11 @@ public class PendulumSettings : ScriptableObject
 	public int size = 2;
 	public float G = 9.81f;
 	public float damp = 0.0001f;
+	public Color backgroundColor;
+	public Color gradientStart;
+	public Color gradientEnd;
+	public bool drawAgents = false;
+	public bool drawTrails = true;
 
 	[Header("Trail Settings")]
 	public float diffuseRate = 1;
