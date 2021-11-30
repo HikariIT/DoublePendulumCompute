@@ -12,11 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c9032ba2b25ca044a8b17c2c3ca778e, type: 3}
   m_Name: Settings
   m_EditorClassIdentifier: 
-  stepsPerFrame: 10
+  stepsPerFrame: 2
   width: 1920
   height: 1080
-  objectQuantity: 32
+  objectQuantity: 1
   size: 2
-  G: 200
+  G: 10
+  damp: 0
   diffuseRate: 1
-  length: 500
+  lengths: {x: 200, y: 200}
+  masses: {x: 10, y: 10}
+  initialAngles: {x: -1.6, y: 0}
+  angleOffsets: {x: 0.001, y: 0.001}

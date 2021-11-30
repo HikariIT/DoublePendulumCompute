@@ -5,8 +5,9 @@ using UnityEngine.Experimental.Rendering;
 
 public struct Pendulum
 {
-    public float angle;
-    public float length;
+    public Vector2 angles;
+    public Vector2 lengths;
+    public Vector2 m;
     public Vector2 vel;
     public Vector2 acc;
 }
@@ -56,6 +57,7 @@ public class DoublePendulumSimulation : MonoBehaviour
         compute.SetInt("quantity", settings.objectQuantity);
         compute.SetInt("pendulumSize", settings.size);
 
+        compute.SetFloat("damp", settings.damp / 1000f);
         compute.SetFloat("PI", Mathf.PI);
         compute.SetFloat("G", settings.G);
 
@@ -70,8 +72,13 @@ public class DoublePendulumSimulation : MonoBehaviour
     void CreatePendulum(int i)
     {
         Pendulum pendulum = new Pendulum();
-        pendulum.angle = Mathf.PI / 2;
-        pendulum.length = settings.length * (100 - i * 0.2f) / 100;
+
+        pendulum.angles = settings.initialAngles * Mathf.PI / 180f + settings.angleOffsets * i;
+        pendulum.lengths = settings.lengths;
+        pendulum.m = settings.masses;
+        pendulum.vel = new Vector2(0, 0);
+        pendulum.acc = new Vector2(0, 0);
+        
         pendulums[i] = pendulum;
     }
 
@@ -99,8 +106,13 @@ public class DoublePendulumSimulation : MonoBehaviour
         cs.Dispatch(kernelIndex, numGroupsX, numGroupsY, numGroupsZ);
     }
 
-    void SimulationStep()
+    void DebugVector2(Vector2 v)
     {
+        Debug.Log("(" + v.x + ", " + v.y + ")");
+    }
+
+    void SimulationStep()
+    {   
         compute.SetFloat("deltaTime", Time.deltaTime);
         compute.SetFloat("time", Time.time);
 
@@ -117,6 +129,7 @@ public class DoublePendulumSimulation : MonoBehaviour
         Graphics.Blit(pendulumTexture, displayTexture);
 
         pendulumBuffer.GetData(pendulums);
+        DebugVector2(pendulums[0].acc);
         pendulumBuffer.Dispose();
     }
 }

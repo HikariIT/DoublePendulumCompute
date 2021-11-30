@@ -2,8 +2,11 @@
 
 struct Pendulum
 {
-    float angle;
-    float length;
+    float2 angles;
+    float2 lengths;
+    float2 masses;
+    float2 vel;
+    float2 acc;
 };
 
 uint width;
@@ -11,6 +14,7 @@ uint height;
 int pendulumSize;
 uint quantity;
 
+float damp;
 float deltaTime;
 float time;
 float PI;
@@ -38,32 +42,58 @@ void PendulumSimulation (uint3 id : SV_DispatchThreadID)
     float2 hookPosition = float2(width / 2, height / 2);
     Pendulum p = pendulums[id.x];
     
-    float amplitude = p.angle;
-    float naturalFrequency = sqrt(G / p.length);
-    float theta = amplitude * cos(naturalFrequency * time);
+    float n1 = -G * (2 * p.masses[0] + p.masses[1]) * sin(p.angles[0]);
+    float n2 = -p.masses[1] * G * sin(p.angles[0] - 2 * p.angles[1]);
+    float n3 = -2 * sin(p.angles[0] - p.angles[1]);
+    float n4 = p.masses[1] * (p.vel[1] * p.vel[1] * p.lengths[1] + p.vel[0] * p.vel[0] * p.lengths[0] * cos(p.angles[0] - p.angles[1]));
+    float den1 = p.lengths[0] * (2 * p.masses[0] + p.masses[1] - p.masses[1] * cos(2 * p.angles[0] - 2 * p.angles[1]));
     
-    float x = hookPosition[0] + p.length * sin(theta);
-    float y = hookPosition[1] + p.length * cos(theta);
+    float n5 = 2 * sin(p.angles[0] - p.angles[1]);
+    float n6 = p.vel[0] * p.vel[0] * p.lengths[0] * (p.masses[0] + p.masses[1]);
+    float n7 = G * (p.masses[0] + p.masses[1] * cos(p.angles[0]));
+    float n8 = p.vel[1] * p.vel[1] * p.lengths[1] * p.masses[1] * cos(p.angles[0] - p.angles[1]);
+    float den2 = p.lengths[1] * (2 * p.masses[0] + p.masses[1] - p.masses[1] * cos(2 * p.angles[0] - 2 * p.angles[1]));
     
-    float2 position = float2(x, y);
-
+    p.acc = float2((n1 + n2 + n3 * n4) / den1, (n5 * (n6 + n7 + n8)) / den2);
+    p.vel = float2(p.vel[0] + p.acc[0] * deltaTime, p.vel[1] + p.acc[1] * deltaTime);
+    p.vel = float2(p.vel[0] * (1 - damp), p.vel[1] * (1 - damp));
+    p.angles = float2(p.angles[0] + p.vel[0] * deltaTime, p.angles[1] + p.vel[1] * deltaTime);
+    
+    float2 midPoint = float2(hookPosition[0] + p.lengths[0] * sin(p.angles[0]),
+                             hookPosition[1] + p.lengths[0] * cos(p.angles[0]));
+    float2 endPoint = float2(midPoint[0] + p.lengths[1] * sin(p.angles[1]),
+                             midPoint[1] + p.lengths[1] * cos(p.angles[1]));
+    
     for (int i = -pendulumSize; i <= pendulumSize; i++)
     {
         for (int j = -pendulumSize; j <= pendulumSize; j++)
         {
-            PendulumTexture[int2(x + i, y + j)] = 1;
+            PendulumTexture[int2(midPoint[0] + i, midPoint[1] + j)] = 1;
+            PendulumTexture[int2(endPoint[0] + i, endPoint[1] + j)] = 1;
         }
     }
 
-    float step = 1 / p.length;
+    //Drawing lines
     
-    for (int s = 0; s < p.length; s++)
+    float step = 1 / (p.lengths[0] * 2);
+    
+    for (int s = 0; s < (p.lengths[0] * 2); s++)
     {
-        float2 lerpValue = lerp(hookPosition, position, s * step);
+        float2 lerpValue = lerp(hookPosition, midPoint, s * step);
+        int2 coordinates = int2((int) lerpValue[0], (int) lerpValue[1]);
+        PendulumTexture[coordinates] = min(PendulumTexture[coordinates] + 0.4, 1);
+    }
+    
+    step = 1 / (p.lengths[1] * 2);
+    
+    for (int s = 0; s < (p.lengths[0] * 2); s++)
+    {
+        float2 lerpValue = lerp(midPoint, endPoint, s * step);
         int2 coordinates = int2((int) lerpValue[0], (int) lerpValue[1]);
         PendulumTexture[coordinates] = min(PendulumTexture[coordinates] + 0.4, 1);
     }
 
+    pendulums[id.x] = p;
 }
 
 #pragma kernel Trail

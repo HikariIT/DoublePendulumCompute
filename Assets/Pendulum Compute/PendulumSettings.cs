@@ -12,10 +12,14 @@ public class PendulumSettings : ScriptableObject
 	public int objectQuantity = 100;
 	public int size = 2;
 	public float G = 9.81f;
+	public float damp = 0.0001f;
 
 	[Header("Trail Settings")]
 	public float diffuseRate = 1;
 
 	[Header("Pendulum Settings")]
-	public float length = 100;
+	public Vector2 lengths = new Vector2(100, 100);
+	public Vector2 masses = new Vector2(10, 10);
+	public Vector2 initialAngles = new Vector2(-90, -90);
+	public Vector2 angleOffsets = new Vector2(0.001f, 0.001f);
 }
