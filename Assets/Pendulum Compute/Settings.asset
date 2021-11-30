@@ -12,15 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c9032ba2b25ca044a8b17c2c3ca778e, type: 3}
   m_Name: Settings
   m_EditorClassIdentifier: 
-  stepsPerFrame: 2
+  stepsPerFrame: 10
   width: 1920
   height: 1080
-  objectQuantity: 1
+  objectQuantity: 2048
   size: 2
   G: 10
   damp: 0
+  backgroundColor: {r: 0.21698111, g: 0.09518511, b: 0.2058134, a: 1}
+  gradientStart: {r: 0.4009434, g: 0.67865497, b: 1, a: 0}
+  gradientEnd: {r: 0.990566, g: 0.41585082, b: 0.7740117, a: 0}
+  drawAgents: 0
+  drawTrails: 1
   diffuseRate: 1
   lengths: {x: 200, y: 200}
-  masses: {x: 10, y: 10}
-  initialAngles: {x: -1.6, y: 0}
-  angleOffsets: {x: 0.001, y: 0.001}
+  masses: {x: 20, y: 20}
+  initialAngles: {x: 90, y: 90}
+  angleOffsets: {x: 0.0001, y: 0.0001}
