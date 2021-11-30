@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c9032ba2b25ca044a8b17c2c3ca778e, type: 3}
+  m_Name: Settings
+  m_EditorClassIdentifier: 
+  stepsPerFrame: 10
+  width: 1920
+  height: 1080
+  objectQuantity: 32
+  size: 2
+  G: 200
+  diffuseRate: 1
+  length: 500

@@ -1,0 +1,77 @@
+﻿#pragma kernel PendulumSimulation
+
+struct Pendulum
+{
+    float angle;
+    float length;
+};
+
+uint width;
+uint height;
+int pendulumSize;
+uint quantity;
+
+float deltaTime;
+float time;
+float PI;
+float G;
+
+RWTexture2D<float4> PendulumTexture;
+RWStructuredBuffer<Pendulum> pendulums;
+
+float Line(float2 p, float2 a, float2 b)
+{
+    float2 pa = p - a, ba = b - a;
+    float h = saturate(dot(pa, ba) / dot(ba, ba));
+    float2 d = pa - ba * h;
+    return dot(d, d);
+}
+
+[numthreads(16, 1, 1)]
+void PendulumSimulation (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= quantity)
+    {
+        return;
+    }
+    
+    float2 hookPosition = float2(width / 2, height / 2);
+    Pendulum p = pendulums[id.x];
+    
+    float amplitude = p.angle;
+    float naturalFrequency = sqrt(G / p.length);
+    float theta = amplitude * cos(naturalFrequency * time);
+    
+    float x = hookPosition[0] + p.length * sin(theta);
+    float y = hookPosition[1] + p.length * cos(theta);
+    
+    float2 position = float2(x, y);
+
+    for (int i = -pendulumSize; i <= pendulumSize; i++)
+    {
+        for (int j = -pendulumSize; j <= pendulumSize; j++)
+        {
+            PendulumTexture[int2(x + i, y + j)] = 1;
+        }
+    }
+
+    float step = 1 / p.length;
+    
+    for (int s = 0; s < p.length; s++)
+    {
+        float2 lerpValue = lerp(hookPosition, position, s * step);
+        int2 coordinates = int2((int) lerpValue[0], (int) lerpValue[1]);
+        PendulumTexture[coordinates] = min(PendulumTexture[coordinates] + 0.4, 1);
+    }
+
+}
+
+#pragma kernel Trail
+
+RWTexture2D<float4> TrailTexture;
+
+[numthreads(8, 8, 1)]
+void Trail(uint3 id : SV_DispatchThreadID)
+{
+    PendulumTexture[id.xy] = 0;
+}
